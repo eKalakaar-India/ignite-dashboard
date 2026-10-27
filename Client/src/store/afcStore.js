@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import axiosClient from "../api/axiosClient";
 import axios from 'axios'
 
-const API_BASE_URL = (import.meta.env.VITE_BASE_URL || 'http://127.0.0.1:4100').replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:4100').replace(/\/$/, '');
 axios.defaults.baseURL = API_BASE_URL;
 
 const normalizeApiResponse = (payload) => payload?.data ?? payload;
