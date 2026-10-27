@@ -38,123 +38,174 @@ const AUDIENCE_SERIES = [
   { key: 'community', label: 'Community', color: CHART_COLORS.growth },
 ]
 
+const QUALITATIVE_GROUPS = ['Student', 'Teacher/Principal', 'Community Member', 'Parent']
+const QUALITATIVE_FIELDS = [
+  { field: 'session_assesment', label: 'Session assessment' },
+  { field: 'key_concern', label: 'Key concerns, barriers or challenges' },
+  { field: 'perception_change', label: 'Changes in understanding or perception' },
+  { field: 'suggestion', label: 'Suggestions, recommendations or feedback' },
+]
+const REPORT_MEDIA_FIELDS = [
+  { field: 'session_images_links', label: 'Session images' },
+  { field: 'geo-taggedPhotos_links', label: 'Geo-tagged photos' },
+  { field: 'attendance_sheets_links', label: 'Attendance sheets' },
+  { field: 'consent_forms_links', label: 'Consent forms' },
+  { field: 'feedback_forms_links', label: 'Feedback forms' },
+  { field: 'IEC_materials_photos_links', label: 'IEC material photos' },
+  { field: 'session_videos_links', label: 'Session videos' },
+]
 const OUTREACH_REPORT_HEADERS = [
   'Sl No',
-  'State',
-  'Cluster',
-  'Outreach activity',
+  'Session activity',
+  'Session category',
   'Date of outreach (DD-MM-YYYY)',
-  'Name of nearest ITI',
-  'ITI Representative Name (Principal)',
-  'Contact No',
-  'Name of School',
+  'Name of school / community / ITI',
+  'State',
+  'District / cluster',
   'Block',
   'Gram Panchayat',
   'Address',
-  'School Representative Name (Principal)',
-  'Contact No',
-  'Link to attendance sheet (Attached )',
-  'Link to training report (Attached)',
-  'Total Students ',
-  'Female students',
+  'Name of nearest ITI',
+  'ITI code',
+  'ITI representative name',
+  'ITI representative contact',
+  'School representative name',
+  'School representative contact',
+  'Total students',
   'Male students',
+  'Female students',
   'Other students',
   'PwD students',
-  'Female principal and teachers',
-  'Male principal and teachers',
-  'Other principal and teachers',
-  'Female parents',
+  'Female principals / teachers',
+  'Male principals / teachers',
+  'Other principals / teachers',
   'Male parents',
+  'Female parents',
   'Other parents',
   'Female community members',
   'Male community members',
   'Other community members',
-  'Feedback form filled (No. of Persons)',
-  'IEC Materials Distributed\n(Total no.)',
-  'Geo-Tagged photo (Session, Feedback, Interaction)',
-  'Observation/ Feedback from Team',
-  'Name of Regional Experts/email and contact no',
-  'Key Challenges',
-  'Qualitative Observation / findings ',
-  'Recommendation',
-  'Remarls',
-  '',
-]
-
-const REPORT_COLUMN_WIDTHS = [
-  8, 18, 18, 22, 18, 26, 30, 16, 30, 18, 22, 32, 34, 16, 38, 38, 16, 16, 16, 16,
-  14, 25, 25, 25, 16, 16, 16, 24, 24, 24, 25, 24, 38, 40, 38, 36, 40, 36, 32, 4,
+  'IEC materials distributed',
+  'Total feedback forms filled',
+  'Observation',
+  'Session remarks',
+  ...QUALITATIVE_GROUPS.flatMap((group) => QUALITATIVE_FIELDS.map(
+    ({ label }) => `${group} — ${label}`
+  )),
+  'Qualitative analysis remarks',
+  'Direct quotes',
+  'Expert ID',
+  ...REPORT_MEDIA_FIELDS.map(({ label }) => `${label} (signed URL)`),
 ]
 
 const sessionCount = (session, field) => Number(session[field] || 0)
-const linksText = (value) => Array.isArray(value) ? value.join('; ') : ''
+const linksText = (value) => Array.isArray(value)
+  ? value.map((link) => typeof link === 'string' ? link : link?.url).filter(Boolean).join('\n')
+  : ''
 
 function isInPeriod(sessionDate, period) {
   return Boolean(period && sessionDate >= period.start && sessionDate <= period.end)
 }
 
-function toOutreachReportRow(session, index) {
+function toOutreachReportRow(session, index, mediaLinks = {}) {
   const femaleStudents = sessionCount(session, 'female_students')
   const maleStudents = sessionCount(session, 'male_students')
   const otherStudents = sessionCount(session, 'other_students')
   const qualitative = session.qualitative_report || {}
   const assessments = Array.isArray(qualitative.assesment_data) ? qualitative.assesment_data : []
-  const assessmentText = (field) => assessments
-    .filter((assessment) => assessment[field])
-    .map((assessment) => `${assessment.type}: ${assessment[field]}`)
-    .join('; ')
+  const directQuotes = Array.isArray(qualitative.direct_quotes)
+    ? qualitative.direct_quotes
+      .filter(Boolean)
+      .map(({ type, name, quote }) => `${type || ''} — ${name || ''}: ${quote || ''}`)
+      .join('\n')
+    : ''
 
   return [
     index + 1,
+    session.type_of_outreach || '',
+    session.type_of_session || '',
+    session.session_date ? session.session_date.split('-').reverse().join('-') : '',
+    session.name_of_session || '',
     session.state || '',
     session.district || '',
-    session.type_of_outreach || '',
-    session.session_date ? session.session_date.split('-').reverse().join('-') : '',
-    session.ITI_name || '',
-    session.iti_rep_name || '',
-    session.iti_rep_contact ?? '',
-    session.name_of_session || '',
     session.block || '',
     session.gram_panchayat || '',
     session.address || '',
+    session.ITI_name || '',
+    session.ITI_code || '',
+    session.iti_rep_name || '',
+    session.iti_rep_contact ?? '',
     session.school_rep_name || '',
     session.school_rep_contact ?? '',
-    linksText(session.attendance_sheets_links),
-    '',
     femaleStudents + maleStudents + otherStudents,
-    femaleStudents,
     maleStudents,
+    femaleStudents,
     otherStudents,
     sessionCount(session, 'pwd_students'),
     sessionCount(session, 'female_staff'),
     sessionCount(session, 'male_staff'),
     sessionCount(session, 'other_staff'),
-    sessionCount(session, 'female_parents'),
     sessionCount(session, 'male_parents'),
+    sessionCount(session, 'female_parents'),
     sessionCount(session, 'other_parents'),
     sessionCount(session, 'female_community_members'),
     sessionCount(session, 'male_community_members'),
     sessionCount(session, 'other_community_members'),
-    '',
     session.total_iec_materials_distributed ?? 0,
-    linksText(session['geo-taggedPhotos_links']),
+    session.total_feedbackform_filled ?? 0,
     session.observation || '',
-    session.expert_id || '',
-    assessmentText('key_concern'),
-    assessmentText('perception_change'),
-    assessmentText('suggestion'),
     session.remarks || '',
-    '',
+    ...QUALITATIVE_GROUPS.flatMap((group) => {
+      const assessment = assessments.find((item) => item?.type === group) || {}
+      return QUALITATIVE_FIELDS.map(({ field }) => assessment[field] || '')
+    }),
+    qualitative.remarks || '',
+    directQuotes,
+    session.expert_id || '',
+    ...REPORT_MEDIA_FIELDS.map(({ field }) => linksText(mediaLinks[field])),
   ]
 }
 
-function makeReportSheet(XLSX, sessions) {
+function makeReportSheet(XLSX, sessions, mediaBySession) {
   const sheet = XLSX.utils.aoa_to_sheet([
-    ['School Outreach Report '],
+    ['Session Report'],
     OUTREACH_REPORT_HEADERS,
-    ...sessions.map(toOutreachReportRow),
+    ...sessions.map((session, index) => toOutreachReportRow(
+      session,
+      index,
+      mediaBySession.get(session.id)
+    )),
   ])
-  sheet['!cols'] = REPORT_COLUMN_WIDTHS.map((wch) => ({ wch }))
+  sheet['!cols'] = OUTREACH_REPORT_HEADERS.map((header) => ({
+    wch: header.includes('(signed URL)') ? 42 : header.length > 32 ? 34 : 22,
+  }))
+  return sheet
+}
+
+function makeMediaLinksSheet(XLSX, sessions, mediaBySession) {
+  const rows = [['Date', 'Session activity', 'Name', 'Media category', 'Signed URL']]
+  sessions.forEach((session) => {
+    const links = mediaBySession.get(session.id) || {}
+    REPORT_MEDIA_FIELDS.forEach(({ field, label }) => {
+      const urls = links[field] || []
+      urls.forEach((url) => {
+        rows.push([
+          session.session_date ? session.session_date.split('-').reverse().join('-') : '',
+          session.type_of_outreach || '',
+          session.name_of_session || '',
+          label,
+          url,
+        ])
+      })
+    })
+  })
+
+  const sheet = XLSX.utils.aoa_to_sheet(rows)
+  sheet['!cols'] = [{ wch: 18 }, { wch: 24 }, { wch: 32 }, { wch: 24 }, { wch: 72 }]
+  rows.slice(1).forEach((row, index) => {
+    const cell = sheet[XLSX.utils.encode_cell({ r: index + 1, c: 4 })]
+    if (cell) cell.l = { Target: row[4], Tooltip: row[3] }
+  })
   return sheet
 }
 
@@ -165,6 +216,7 @@ export default function Performance() {
   const performanceLoading = useAFCStore((store) => store.performanceLoading)
   const performanceError = useAFCStore((store) => store.performanceError)
   const fetchPerformance = useAFCStore((store) => store.fetchPerformance)
+  const fetchSessionDocumentationForSessions = useAFCStore((store) => store.fetchSessionDocumentationForSessions)
 
   useEffect(() => {
     fetchPerformance()
@@ -191,11 +243,24 @@ export default function Performance() {
         .filter((session) => isInPeriod(session.session_date, latestWeekly))
       const monthlyRows = reportRows
         .filter((session) => isInPeriod(session.session_date, latestMonthly))
+      const sessionIds = [...new Set([...weeklyRows, ...monthlyRows].map((session) => session.id).filter(Boolean))]
+      const mediaBySession = new Map()
+      for (let index = 0; index < sessionIds.length; index += 200) {
+        const signedMedia = await fetchSessionDocumentationForSessions(sessionIds.slice(index, index + 200))
+        signedMedia.forEach(({ sessionId, links }) => mediaBySession.set(sessionId, links))
+      }
       const workbook = XLSX.utils.book_new()
-      const weeklySheet = makeReportSheet(XLSX, weeklyRows)
-      const monthlySheet = makeReportSheet(XLSX, monthlyRows)
+      const weeklySheet = makeReportSheet(XLSX, weeklyRows, mediaBySession)
+      const monthlySheet = makeReportSheet(XLSX, monthlyRows, mediaBySession)
+      const uniqueReportSessions = [...new Map([...weeklyRows, ...monthlyRows]
+        .map((session) => [session.id, session])).values()]
       XLSX.utils.book_append_sheet(workbook, weeklySheet, 'Weekly Report')
       XLSX.utils.book_append_sheet(workbook, monthlySheet, 'Monthly Report')
+      XLSX.utils.book_append_sheet(
+        workbook,
+        makeMediaLinksSheet(XLSX, uniqueReportSessions, mediaBySession),
+        'Media Links'
+      )
       XLSX.writeFile(workbook, `School_Outreach_Reports_${latestWeekly?.start || 'weekly'}_${latestMonthly?.key || 'monthly'}.xlsx`)
     } catch (error) {
       setDownloadError(error?.message || 'Unable to generate the Excel report.')

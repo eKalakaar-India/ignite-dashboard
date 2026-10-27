@@ -6,7 +6,11 @@ import {
   validateUploadBody,
   validateFilesPresence,
 } from './uploads.validations.js';
-import { getSessionDocumentation, uploadImages }from './uploads.controllers.js';
+import {
+  getSessionDocumentation,
+  getSessionDocumentationForSessions,
+  uploadImages,
+} from './uploads.controllers.js';
 import { authenticate } from '../../middlewares/auth.js';
 /**
  * Top-level folders without subfolders:
@@ -29,6 +33,12 @@ router.get(
   '/session/:id/documentation',
   authenticate,
   getSessionDocumentation
+);
+
+router.post(
+  '/sessions/documentation',
+  authenticate,
+  getSessionDocumentationForSessions
 );
 
 router.post(

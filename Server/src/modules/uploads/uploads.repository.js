@@ -1,6 +1,8 @@
 // repositories/storageRepository.js
 import { supabase, SUPABASE_BUCKET } from'../../config/supabase.js';
 
+export const IMAGE_SIGNED_URL_EXPIRY_SECONDS = 30 * 365 * 24 * 60 * 60;
+
 /**
  * Repository layer: only talks to Supabase Storage. No business rules here.
  */

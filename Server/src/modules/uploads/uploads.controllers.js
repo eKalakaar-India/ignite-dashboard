@@ -43,3 +43,16 @@ export async function getSessionDocumentation(req, res, next) {
     next(err);
   }
 }
+
+export async function getSessionDocumentationForSessions(req, res, next) {
+  try {
+    const documents = await service.getSessionDocumentationForSessions(req.body?.sessionIds);
+    return res.status(200).json({
+      success: true,
+      message: 'Session image links signed successfully.',
+      data: documents,
+    });
+  } catch (err) {
+    next(err);
+  }
+}

@@ -212,6 +212,15 @@ export const useAFCStore = create((set, get) => ({
     }
   },
 
+  fetchSessionDocumentationForSessions: async (sessionIds) => {
+    try {
+      const response = await axiosClient.post('/uploads/sessions/documentation', { sessionIds });
+      return normalizeApiResponse(response.data);
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  },
+
   createQualitativeAnalysis: async (analysisData) => {
     try {
       const response = await axiosClient.post('/session/qualitative', analysisData);

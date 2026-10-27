@@ -1,5 +1,5 @@
 // services/uploadService.js
-import storageRepository from './uploads.repository.js';
+import storageRepository, { IMAGE_SIGNED_URL_EXPIRY_SECONDS } from './uploads.repository.js';
 import ExpertRepository from '../genderExperts/experts.repository.js'
 import { buildUniqueFileName } from'../../utils/fileNameHelper.js';
 import {
@@ -126,26 +126,65 @@ class UploadService {
   async getSessionDocumentation(sessionId) {
     const session = await this.sessionRepository.fetchSessionById(sessionId);
     const categories = [
-      ['Attendance sheets', session.attendance_sheets_links],
-      ['Consent forms', session.consent_forms_links],
-      ['Feedback forms', session.feedback_forms_links],
-      ['IEC material photos', session.IEC_materials_photos_links],
-      ['Geo-tagged photos', session['geo-taggedPhotos_links']],
-      ['Session images', session.session_images_links],
+      { label: 'Attendance sheets', field: 'attendance_sheets_links' },
+      { label: 'Consent forms', field: 'consent_forms_links' },
+      { label: 'Feedback forms', field: 'feedback_forms_links' },
+      { label: 'IEC material photos', field: 'IEC_materials_photos_links' },
+      { label: 'Geo-tagged photos', field: 'geo-taggedPhotos_links' },
+      { label: 'Session images', field: 'session_images_links' },
     ];
 
-    return Promise.all(categories.map(async ([label, paths]) => ({
+    return Promise.all(categories.map(async ({ label, field }) => ({
       label,
       files: await Promise.all(
-        (Array.isArray(paths) ? paths : []).map(async (path) => {
+        (Array.isArray(session[field]) ? session[field] : []).map(async (path) => {
           try {
-            return { path, url: await this.repository.getSignedUrl(path) };
+            return {
+              path,
+              url: await this.repository.getSignedUrl(path, IMAGE_SIGNED_URL_EXPIRY_SECONDS),
+            };
           } catch (error) {
             return { path, error: error.message };
           }
         })
       ),
     })));
+  }
+
+  async getSessionDocumentationForSessions(sessionIds) {
+    if (!Array.isArray(sessionIds) || sessionIds.length === 0 || sessionIds.length > 500) {
+      const err = new Error('Provide between 1 and 500 session IDs to sign image links.');
+      err.statusCode = 400;
+      throw err;
+    }
+    if (sessionIds.some((sessionId) => typeof sessionId !== 'string' || !sessionId.trim())) {
+      const err = new Error('Every session ID must be a non-empty string.');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const sessions = await this.sessionRepository.fetchSessionMediaByIds([...new Set(sessionIds)]);
+    const mediaFields = [
+      'attendance_sheets_links',
+      'feedback_forms_links',
+      'consent_forms_links',
+      'geo-taggedPhotos_links',
+      'IEC_materials_photos_links',
+      'session_images_links',
+      'session_videos_links',
+    ];
+
+    return Promise.all(sessions.map(async (session) => {
+      const links = Object.fromEntries(await Promise.all(mediaFields.map(async (field) => [
+        field,
+        await Promise.all(
+          (Array.isArray(session[field]) ? session[field] : []).map((path) =>
+            this.repository.getSignedUrl(path, IMAGE_SIGNED_URL_EXPIRY_SECONDS)
+          )
+        ),
+      ])));
+      return { sessionId: session.id, links };
+    }));
   }
 }
 

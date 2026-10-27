@@ -51,6 +51,28 @@ class AuthRepository {
     return data;
   }
 
+  async fetchSessionMediaByIds(sessionIDs) {
+    const { data, error } = await supabase
+      .from(this.table)
+      .select(`
+        id,
+        attendance_sheets_links,
+        feedback_forms_links,
+        consent_forms_links,
+        "geo-taggedPhotos_links",
+        IEC_materials_photos_links,
+        session_images_links,
+        session_videos_links
+      `)
+      .in('id', sessionIDs);
+    if (error) {
+      throw new ApiError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Unable to fetch session media', [
+        { field: 'session_media', message: error.message },
+      ]);
+    }
+    return data || [];
+  }
+
   async updateSession(payload, sessionID) {
     const { data, error } = await supabase.from(this.table).update({
             ...payload,
