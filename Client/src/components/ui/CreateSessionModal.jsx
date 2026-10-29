@@ -53,10 +53,10 @@ const MAX_IMAGE_COUNT = 5;
 const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
 const UPLOAD_CATEGORIES = [
-  { key: "session_images", label: "Session images", folder: "session_media/images" },
+  // { key: "session_images", label: "Session images", folder: "session_media/images" },
   { key: "geo_tagged_photos", label: "Geo-tagged photos", folder: "geo-taggedPhotos" },
-  { key: "attendance_sheets", label: "Attendance sheet", folder: "attendance_sheets" },
-  { key: "consent_forms", label: "Consent form", folder: "consent_forms" },
+  { key: "attendance_sheets", label: "Attendance sheet / Consent form", folder: "attendance_sheets" },
+  // { key: "consent_forms", label: "Consent form", folder: "consent_forms" },
   { key: "feedback_forms", label: "Feedback form", folder: "feedback_forms" },
 ];
 

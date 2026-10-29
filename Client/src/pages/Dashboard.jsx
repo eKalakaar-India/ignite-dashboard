@@ -124,6 +124,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <KPICard
           label="States Covered"
+          total="7"
           value={coverage.states}
           icon={Landmark}
           accent="primary"
@@ -135,6 +136,7 @@ export default function Dashboard() {
         />
         <KPICard
           label="Districts / Clusters Covered"
+          total="18"
           value={coverage.districts}
           icon={MapIcon}
           accent="primary"

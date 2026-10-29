@@ -352,10 +352,10 @@ export default function DetailDrawer({ record, onClose, onEdit }) {
               Documentation
             </h4>
             <div className="space-y-2.5">
-              <DocRow id={record.id} label="Attendance Sheet" ok={record.attendance} folder="attendance_sheets" sessionCompleted={currentStatus === 'Completed'} onSessionUpdated={(session) => setCurrentStatus(session.status)} />
-              <DocRow id={record.id} label="Consent Forms" ok={record.consent} folder="consent_forms" sessionCompleted={currentStatus === 'Completed'} onSessionUpdated={(session) => setCurrentStatus(session.status)} />
+              <DocRow id={record.id} label="Attendance Sheet / Consent Form" ok={record.attendance} folder="attendance_sheets" sessionCompleted={currentStatus === 'Completed'} onSessionUpdated={(session) => setCurrentStatus(session.status)} />
+              {/* <DocRow id={record.id} label="Consent Forms" ok={record.consent} folder="consent_forms" sessionCompleted={currentStatus === 'Completed'} onSessionUpdated={(session) => setCurrentStatus(session.status)} /> */}
               <DocRow id={record.id} label="Feedback Forms" ok={record.feedback} folder="feedback_forms" sessionCompleted={currentStatus === 'Completed'} onSessionUpdated={(session) => setCurrentStatus(session.status)} />
-              <DocRow id={record.id} label="IEC Material Distributed" ok={record.iecMaterial} folder="IEC_materials_photos" sessionCompleted={currentStatus === 'Completed'} onSessionUpdated={(session) => setCurrentStatus(session.status)} />
+              {/* <DocRow id={record.id} label="IEC Material Distributed" ok={record.iecMaterial} folder="IEC_materials_photos" sessionCompleted={currentStatus === 'Completed'} onSessionUpdated={(session) => setCurrentStatus(session.status)} /> */}
               <DocRow id={record.id} label="Geo-tagged Photo" ok={record.geoTaggedPhoto} folder="geo-taggedPhotos" sessionCompleted={currentStatus === 'Completed'} onSessionUpdated={(session) => setCurrentStatus(session.status)} />
             </div>
             {record.iecTypes?.length > 0 && (
